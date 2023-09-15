@@ -1,0 +1,8 @@
+streamlit
+pandas
+re
+requests
+nltk
+bs4 
+collections
+streamlit_tags
