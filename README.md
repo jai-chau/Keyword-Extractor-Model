@@ -23,7 +23,6 @@ The tool scrapes data from roic.ai. If there's any change in the website structu
   2) Develop a mechanism to determine the rate of change of sentiment quarter-over-quarter for recurring phrases.
 
 <h3>Dependencies:</h3>
-  <br>
   1) pandas
   <br>
   2) nltk
