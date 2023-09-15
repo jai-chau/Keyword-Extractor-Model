@@ -36,8 +36,6 @@ The tool scrapes data from roic.ai. If there's any change in the website structu
   6) streamlit
   <br>
   7) streamlit-tags
-  <br>
 
-Disclaimer:
-<br>
+<h3>Disclaimer:</h3>
 This tool is intended for educational and informational purposes only. It scrapes data from a third-party website, and the accuracy, timeliness, or completeness of the data cannot be guaranteed.
