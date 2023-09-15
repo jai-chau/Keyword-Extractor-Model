@@ -26,6 +26,7 @@ st.title("Earnings Transcript Analysis")
 
 #Inputting the Ticker, Year, Quarter, Number of Phrases Wanted, and Custom Words to be Removed from the sidebar
 ticker = st.sidebar.text_input("Ticker", value='', max_chars=5)
+ticker = ticker.upper()
 year = st.sidebar.number_input("Year", min_value=1, max_value=2030, value=2023)
 quarter = st.sidebar.number_input("Quarter", min_value=1, max_value=4, value=2)
 topNum = st.sidebar.number_input("Number of Outputs Wanted", min_value=1, max_value=100, value=10)
