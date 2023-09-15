@@ -9,7 +9,6 @@
 
 <h3>How To Use:</h3>
   1) Enter the required details in the sidebar.
-
   2) The app will display the top phrases from the earnings call transcript based on the input details.
 
 <h3>Important Note:</h3>
