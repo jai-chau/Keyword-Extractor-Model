@@ -3,5 +3,4 @@ pandas
 requests
 nltk
 bs4 
-collections
 streamlit_tags
