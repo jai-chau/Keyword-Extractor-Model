@@ -17,6 +17,9 @@ from nltk.corpus import stopwords
 import streamlit as st
 from streamlit_tags import st_tags_sidebar 
 
+nltk.download('punkt')
+nltk.download('stopwords')
+
 #Streamlit app title
 st.set_page_config(layout="wide")
 st.title("Earnings Transcript Analysis")
