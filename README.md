@@ -1,4 +1,4 @@
-#Earnings Transcript Analysis
+<h1>Earnings Transcript Analysis</h1>
 
 This tool facilitates the analysis of earnings call transcripts by extracting key phrases (bigrams) and displaying them. Developed using Python and Streamlit, it sources transcript data from roic.ai and highlights the most mentioned phrases to identify the main discussion points of the call.
 Features:
