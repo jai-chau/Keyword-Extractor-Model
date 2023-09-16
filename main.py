@@ -17,9 +17,6 @@ from nltk.corpus import stopwords
 import streamlit as st
 from streamlit_tags import st_tags_sidebar 
 
-nltk.download('punkt')
-nltk.download('stopwords')
-
 #Streamlit app title
 st.set_page_config(layout="wide")
 st.title("Earnings Transcript Analysis")
@@ -37,9 +34,9 @@ def insertColon(text):
 
 #Getting the earnings call transcript from roic.ai
 #IMPORTANT[THIS ENTIRE CODE WILL STOP WORKING IF ROIC.AI CHANGES THEIR WEBSITE STRUCTURE]
-def earningsTranscript(ticker):
+def earningsTranscript(ticker, year, quarter):
     eTranscript = []
-    url = f"https://roic.ai/transcripts/{ticker}:US/{year}/{quarter}"
+    url = f"https://roic.ai/transcripts/{ticker}:US?year={year}&quarter={quarter}"
     agent = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
 
     response = requests.get(url, headers= agent)
@@ -110,20 +107,70 @@ def extractKeywords(transcript_list, top_n=10):
         
     return df
 
+#Calculating the Rate of Change for Bigrams from past Year and Quarter to current Year and Quarter
+def keywordRateofChange(topPhrases, pastTranscript, pastY, pastQ):
+    # Tokenize and filter the past transcript
+    pastTranscript = ' '.join(pastTranscript)
+    pastWords = nltk.word_tokenize(pastTranscript.lower())
+    filteredPastWords = [word for word in pastWords if word not in stopwords.words('english') and word.isalpha()]
+    
+    # Get the bigram frequencies for the past transcript
+    pastBigramFinder = BigramCollocationFinder.from_words(filteredPastWords)
+    pastBigramsFreq = {k: v for k, v in pastBigramFinder.ngram_fd.items()}
+    
+    # Prepare the data for the dataframe
+    phrases = topPhrases['Phrases'].tolist()
+    currentFrequencies = topPhrases['Frequency'].tolist()
+    pastFrequencies = [pastBigramsFreq.get(tuple(phrase.split()), 0) for phrase in phrases]
+    
+    # Calculate rate of change, handling the case where pastFrequency is 0
+    rate_of_change = []
+    for curr, past in zip(currentFrequencies, pastFrequencies):
+        if past == 0:
+            if curr == 0:
+                rate_of_change.append("0%")
+            else:
+                rate_of_change.append("∞%")  # if it appears now, but didn't appear before
+        else:
+            percentage_change = ((curr - past) / past) * 100
+            rate_of_change.append(f"{percentage_change:.2f}%")
+    
+    # Construct the DataFrame
+    df = pd.DataFrame({
+        'Phrases': phrases,
+        f'Frequency in {pastY} Quarter {pastQ}': pastFrequencies,
+        f'Frequency in {year} Quarter {quarter}': currentFrequencies,
+        'Rate of Change of Frequency': rate_of_change
+    })
+    
+    return df
+
 # Usage example:
 # df = extractKeywords(transcript_list)
 # print(df)
 
-# Example usage 
-transcript = cleanedText(earningsTranscript(ticker), customRemovedWords)
-topPhrases = extractKeywords(transcript, topNum)
-#print("Top Keywords:", topKeywords)
-#print("Top Phrases:", topPhrases)
-
 #Outputing the Tables with data
 if ticker:
+    transcript = cleanedText(earningsTranscript(ticker, year, quarter), customRemovedWords)
+    topPhrases = extractKeywords(transcript, topNum)
+
     #Table for the Top Phrases of Specified Year and Quarter
     st.subheader(f"Top Phrases for {ticker} in {year} Quarter {quarter}:")
     st.table(topPhrases)
+    
+    if quarter == 1:
+        pastQ = 4
+        pastY = year - 1
+        pastTranscript = cleanedText(earningsTranscript(ticker, pastY, pastQ), customRemovedWords)
+        keywordChange = keywordRateofChange(topPhrases, pastTranscript, pastY, pastQ)
+    else:
+        pastQ = quarter - 1
+        pastY = year 
+        pastTranscript = cleanedText(earningsTranscript(ticker, pastY, pastQ), customRemovedWords)
+        keywordChange = keywordRateofChange(topPhrases, pastTranscript, pastY, pastQ)
+    
+    st.subheader(f"Rate of Change of Top Phrases for {ticker} from {pastY} Quarter {pastQ} to {year} Quarter {quarter}:")
+    st.table(keywordChange)
+    
 else:
     st.subheader("Enter a ticker")
