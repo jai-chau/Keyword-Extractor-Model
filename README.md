@@ -7,7 +7,7 @@
   <br>
   2) Utilizes NLP techniques to process and analyze the transcript.
   <br>
-  3) Displays a table of the most common phrases (bigrams) from the transcript.
+  3) Displays a table of the most common phrases (bigrams) from the transcript and compares it to the past quarter and displays the rate of change.
 
 <h3>How To Use:</h3>
   1) Enter the required details in the sidebar.
