@@ -136,7 +136,7 @@ def keywordRateofChange(topPhrases, pastTranscript, pastY, pastQ):
                 rate_of_change.append("∞%")  # if it appears now, but didn't appear before
         else:
             percentage_change = ((curr - past) / past) * 100
-            rate_of_change.append(f"{percentage_change:.2f}%")
+            rate_of_change.append(f"{percentage_change:.0f}%")
     
     # Construct the DataFrame
     df = pd.DataFrame({
