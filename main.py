@@ -2,6 +2,9 @@
 Things to add:
 1) Get sentences in which the phrases are in and calculate sentiment of those sentences
 2) Rate of change of sentiment quarter over quarter for phrases that repeat
+3) Add Lemmatizer to remove redundancy in words
+4) Figure out what is GP US in ANET analysis
+5) Remove all auxillary verbs and pronouns 
 '''
 
 #Importing the necessary packages
@@ -19,6 +22,7 @@ from streamlit_tags import st_tags_sidebar
 
 nltk.download('punkt')
 nltk.download('stopwords')
+nltk.download('averaged_perceptron_tagger')
 
 #Streamlit app title
 st.set_page_config(layout="wide")
@@ -87,7 +91,16 @@ def extractKeywords(transcript_list, top_n=10):
     transcript = ' '.join(transcript_list)
     
     words = nltk.word_tokenize(transcript.lower())
-    filteredWords = [word for word in words if word not in stopwords.words('english') and word.isalpha()]
+    # Tagging the words with their parts of speech
+    tagged_tokens = nltk.pos_tag(words)
+    
+    # Filtering out the stopwords, non-alphabetical words, pronouns and auxiliary verbs
+    filteredWords = [
+        token for token, pos in tagged_tokens 
+        if token not in stopwords.words('english') 
+        and token.isalpha() 
+        and pos not in ["PRP", "PRP$", "MD", "UH"]
+    ]
 
     word_freq = Counter(filteredWords)
     bigramFinder = BigramCollocationFinder.from_words(filteredWords)
@@ -115,7 +128,17 @@ def keywordRateofChange(topPhrases, pastTranscript, pastY, pastQ):
     # Tokenize and filter the past transcript
     pastTranscript = ' '.join(pastTranscript)
     pastWords = nltk.word_tokenize(pastTranscript.lower())
-    filteredPastWords = [word for word in pastWords if word not in stopwords.words('english') and word.isalpha()]
+    
+    # Tag each tokenized word with its corresponding part-of-speech (POS)
+    taggedTokens = nltk.pos_tag(pastWords)
+    
+    # Filter the words: Remove stopwords, keep alphabetic tokens, and filter out pronouns and auxiliary verbs
+    filteredPastWords = [
+        token for token, pos in taggedTokens 
+        if token not in stopwords.words('english') 
+        and token.isalpha() 
+        and pos not in ["PRP", "PRP$", "MD"]
+    ]
     
     # Get the bigram frequencies for the past transcript
     pastBigramFinder = BigramCollocationFinder.from_words(filteredPastWords)
