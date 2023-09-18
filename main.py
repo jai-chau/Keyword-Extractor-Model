@@ -80,9 +80,10 @@ def cleanedText(transcript, customRemovals=[]):
     for item in transcript:
         cleanedItem = item.lower()
         for name in uniqueNames:
-            cleanedItem = cleanedItem.replace(name, "")
+            cleanedItem = cleanedItem.replace(name + ":", "").strip() # Ensure names are followed by a colon to prevent unintended splits
         for word in customRemovals:
-            cleanedItem = cleanedItem.replace(word.lower(), "")
+            cleanedItem = re.sub(r'\b' + re.escape(word.lower()) + r'\b', '', cleanedItem) # Replace whole words only
+        cleanedItem = re.sub(r'\s+', ' ', cleanedItem) # Replace multiple spaces with a single space
         cleanedList.append(cleanedItem.strip(": "))
 
     return cleanedList
