@@ -2,9 +2,7 @@
 Things to add:
 1) Get sentences in which the phrases are in and calculate sentiment of those sentences
 2) Rate of change of sentiment quarter over quarter for phrases that repeat
-3) Add Lemmatizer to remove redundancy in words
-4) Figure out what is GP US in ANET analysis
-5) Remove all auxillary verbs and pronouns 
+3) Figure out what is GP US in ANET analysis
 '''
 
 #Importing the necessary packages
@@ -15,14 +13,15 @@ from bs4 import BeautifulSoup
 import nltk
 from collections import Counter
 from nltk.collocations import BigramCollocationFinder
-from nltk.metrics import BigramAssocMeasures
 from nltk.corpus import stopwords
 import streamlit as st
 from streamlit_tags import st_tags_sidebar 
-
+from nltk.stem import WordNetLemmatizer
+ 
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
 
 #Streamlit app title
 st.set_page_config(layout="wide")
@@ -35,6 +34,8 @@ year = st.sidebar.number_input("Year", min_value=1, max_value=2030, value=2023)
 quarter = st.sidebar.number_input("Quarter", min_value=1, max_value=4, value=2)
 topNum = st.sidebar.number_input("Number of Outputs Wanted", min_value=1, max_value=100, value=10)
 customRemovedWords = st_tags_sidebar(label='Custom Words to be removed', text='Press enter to add more', value=["quarter", "billion", "year", "million", "basis points"])
+
+lemmatizer = WordNetLemmatizer()
 
 def insertColon(text):
     return re.sub(r'([a-zA-Z]+)([A-Z][a-z]+)', r'\1: \2', text)
@@ -91,8 +92,12 @@ def extractKeywords(transcript_list, top_n=10):
     transcript = ' '.join(transcript_list)
     
     words = nltk.word_tokenize(transcript.lower())
+    
+    #Lemmatizing the words to ensure consistency
+    lemmatized = [lemmatizer.lemmatize(word) for word in words]
+    
     # Tagging the words with their parts of speech
-    tagged_tokens = nltk.pos_tag(words)
+    tagged_tokens = nltk.pos_tag(lemmatized)
     
     # Filtering out the stopwords, non-alphabetical words, pronouns and auxiliary verbs
     filteredWords = [
@@ -102,7 +107,6 @@ def extractKeywords(transcript_list, top_n=10):
         and pos not in ["PRP", "PRP$", "MD", "UH"]
     ]
 
-    word_freq = Counter(filteredWords)
     bigramFinder = BigramCollocationFinder.from_words(filteredWords)
 
     # Get the frequencies of the bigrams
@@ -195,8 +199,8 @@ if ticker:
         pastTranscript = cleanedText(earningsTranscript(ticker, pastY, pastQ), customRemovedWords)
         keywordChange = keywordRateofChange(topPhrases, pastTranscript, pastY, pastQ)
     
+    #Table for Top Phrases and Rate of Change
     st.subheader(f"Rate of Change of Top Phrases for {ticker} from {pastY} Quarter {pastQ} to {year} Quarter {quarter}:")
     st.table(keywordChange)
-    
 else:
     st.subheader("Enter a ticker")
