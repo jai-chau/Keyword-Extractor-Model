@@ -1,7 +1,6 @@
 '''
 Things to add:
-1) Add ability to add a particular keyword that you want to look for
-2) Add blurbs of sample text surrouding a keyword
+1) Add sentiment analysis on text surrounding keywords
 '''
 
 #Importing the necessary packages
