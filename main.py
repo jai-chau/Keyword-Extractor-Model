@@ -1,8 +1,7 @@
 '''
 Things to add:
-1) Get sentences in which the phrases are in and calculate sentiment of those sentences
-2) Rate of change of sentiment quarter over quarter for phrases that repeat
-3) Figure out what is GP US in ANET analysis
+1) Add ability to add a particular keyword that you want to look for
+2) Add blurbs of sample text surrouding a keyword
 '''
 
 #Importing the necessary packages
@@ -33,6 +32,7 @@ ticker = ticker.upper()
 year = st.sidebar.number_input("Year", min_value=1, max_value=2030, value=2023)
 quarter = st.sidebar.number_input("Quarter", min_value=1, max_value=4, value=2)
 topNum = st.sidebar.number_input("Number of Outputs Wanted", min_value=1, max_value=100, value=10)
+custom_keywords = st_tags_sidebar(label='Enter Custom Keywords', text='Press enter to add more', value=['revenue', 'profit'])
 customRemovedWords = st_tags_sidebar(label='Custom Words to be removed', text='Press enter to add more', value=["quarter", "billion", "year", "million", "basis points"])
 
 lemmatizer = WordNetLemmatizer()
@@ -181,7 +181,7 @@ def keywordRateofChange(topPhrases, pastTranscript, pastY, pastQ):
 # print(df)
 
 #Outputing the Tables with data
-if ticker:
+if ticker and custom_keywords:
     transcript = cleanedText(earningsTranscript(ticker, year, quarter), customRemovedWords)
     topPhrases = extractKeywords(transcript, topNum)
 
@@ -203,5 +203,46 @@ if ticker:
     #Table for Top Phrases and Rate of Change
     st.subheader(f"Rate of Change of Top Phrases for {ticker} from {pastY} Quarter {pastQ} to {year} Quarter {quarter}:")
     st.table(keywordChange)
+    
+    def getKeyWordFreq(current_transcript, past_transcript, keywords):
+        keyword_frequencies_current = {}
+        keyword_frequencies_past = {}
+        
+        for keyword in keywords:
+            keyword_frequencies_current[keyword] = sum(1 for item in current_transcript if keyword in item)
+            keyword_frequencies_past[keyword] = sum(1 for item in past_transcript if keyword in item)
+
+        return keyword_frequencies_current, keyword_frequencies_past
+
+    def displayKeywordData(current_transcript, past_transcript, custom_keywords):
+        current_keyword_freq, past_keyword_freq = getKeyWordFreq(current_transcript, past_transcript, custom_keywords)
+
+        # Calculate rate of change, handling the case where past frequency is 0
+        rate_of_change = []
+        for keyword in custom_keywords:
+            curr = current_keyword_freq[keyword]
+            past = past_keyword_freq[keyword]
+            if past == 0:
+                if curr == 0:
+                    rate_of_change.append("0%")
+                else:
+                    rate_of_change.append("∞%")  # if it appears now, but didn't appear before
+            else:
+                percentage_change = ((curr - past) / past) * 100
+                rate_of_change.append(f"{percentage_change:.0f}%")
+        
+        # Construct the DataFrame
+        df = pd.DataFrame({
+            'Keyword': custom_keywords,
+            f'Frequency in {pastY} Quarter {pastQ}': [past_keyword_freq[keyword] for keyword in custom_keywords],
+            f'Frequency in {year} Quarter {quarter}': [current_keyword_freq[keyword] for keyword in custom_keywords],
+            'Rate of Change': rate_of_change
+        })
+        
+        st.table(df)
+
+    # Using the above function to display keyword data
+    st.subheader(f"Rate of Change for Custom Keywords for {ticker} from {pastY} Quarter {pastQ} to {year} Quarter {quarter}:")
+    displayKeywordData(transcript, pastTranscript, custom_keywords)
 else:
     st.subheader("Enter a ticker")
